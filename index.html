@@ -497,8 +497,8 @@ Return ONLY valid JSON with this structure:
 Each object must include: "k" (kanji/kana), "h" (hiragana), "r" (romaji), "m" (Korean meaning), "d" (short Korean description with an example), "level" (N5|N4|N3|N2|N1).
 Nothing else.`;
 
-  // 로컬: Anthropic 직접 호출 / 배포: Netlify Function 경유
-  const url     = isLocal() ? 'https://api.anthropic.com/v1/messages' : '/.netlify/functions/daily-words';
+  // 로컬: Anthropic 직접 호출 / 배포: 정적 daily.json 사용 (빌드 시 생성)
+  const url     = isLocal() ? 'https://api.anthropic.com/v1/messages' : '/daily.json';
   const headers = { 'Content-Type': 'application/json' };
   if (isLocal()) {
     if (!apiKey) throw new Error('API 키가 없습니다. config.js를 확인해주세요.');
