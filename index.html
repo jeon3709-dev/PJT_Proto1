@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 일본어 단어장</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --accent: #e94560;
+    --text: #eaeaea;
+    --text-dim: #8888aa;
+    --noun: #4ecdc4;
+    --verb: #ff6b6b;
+    --adj: #ffe66d;
+    --adv: #a8e6cf;
+    --radius: 12px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'Noto Sans KR', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #e94560, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .date-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 16px;
+    background: var(--surface);
+    border: 1px solid #333;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .cache-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    margin-left: 8px;
+    padding: 2px 10px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 20px;
+    font-size: 0.72rem;
+    color: #22c55e;
+  }
+
+  .header-btns {
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: flex;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    background: var(--surface);
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text-dim);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .icon-btn:hover { color: var(--text); border-color: #555; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .tab-btn {
+    padding: 8px 20px;
+    border-radius: 24px;
+    border: 2px solid transparent;
+    background: var(--surface);
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn[data-cat="noun"].active { border-color: var(--noun); color: var(--noun); }
+  .tab-btn[data-cat="verb"].active { border-color: var(--verb); color: var(--verb); }
+  .tab-btn[data-cat="adj"].active  { border-color: var(--adj);  color: var(--adj); }
+  .tab-btn[data-cat="adv"].active  { border-color: var(--adv);  color: var(--adv); }
+
+  /* ── Sections ── */
+  .section { display: none; max-width: 960px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    padding-left: 4px;
+    opacity: 0.8;
+  }
+
+  .section-title span.jp { font-size: 0.85rem; opacity: 0.6; margin-left: 6px; }
+
+  /* ── Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    border-left: 4px solid transparent;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background: radial-gradient(circle at top right, white, transparent 60%);
+    pointer-events: none;
+  }
+
+  .noun-card { border-color: var(--noun); }
+  .verb-card { border-color: var(--verb); }
+  .adj-card  { border-color: var(--adj); }
+  .adv-card  { border-color: var(--adv); }
+
+  .card-num {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 0.75rem;
+    color: #555;
+    font-weight: 700;
+  }
+
+  .card-kanji  { font-size: 1.9rem; font-weight: 800; letter-spacing: 1px; line-height: 1.1; margin-bottom: 4px; }
+  .card-reading { font-size: 0.95rem; color: var(--text-dim); margin-bottom: 2px; }
+  .card-romaji  { font-size: 0.78rem; color: #666; margin-bottom: 10px; font-style: italic; }
+  .card-meaning { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .card-desc    { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-noun { background: rgba(78,205,196,0.15);  color: var(--noun); }
+  .tag-verb { background: rgba(255,107,107,0.15); color: var(--verb); }
+  .tag-adj  { background: rgba(255,230,109,0.15); color: var(--adj); }
+  .tag-adv  { background: rgba(168,230,207,0.15); color: var(--adv); }
+  .tag-iadj { background: rgba(255,200,100,0.15); color: #ffca5a; }
+  .tag-nadj { background: rgba(200,150,255,0.15); color: #c896ff; }
+
+  /* JLPT level */
+  .tag-N5 { background: rgba(34,197,94,0.15);  color: #4ade80; }
+  .tag-N4 { background: rgba(20,184,166,0.15); color: #2dd4bf; }
+  .tag-N3 { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .tag-N2 { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .tag-N1 { background: rgba(239,68,68,0.15);  color: #f87171; }
+
+  /* ── Loading overlay ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,15,26,0.88);
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 100;
+  }
+
+  .spinner {
+    width: 52px;
+    height: 52px;
+    border: 3px solid #2a2a3e;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text { font-size: 1rem; color: var(--text-dim); text-align: center; line-height: 1.6; }
+  .loading-sub  { font-size: 0.8rem; color: #555; }
+
+  /* ── Notice / Error boxes ── */
+  .center-box {
+    max-width: 520px;
+    margin: 60px auto;
+    background: var(--surface);
+    border: 1px solid #2a2a3e;
+    border-radius: 16px;
+    padding: 36px 32px;
+    text-align: center;
+  }
+
+  .center-box .box-icon { font-size: 3rem; margin-bottom: 16px; }
+  .center-box h2 { font-size: 1.25rem; margin-bottom: 12px; }
+  .center-box p  { color: var(--text-dim); font-size: 0.88rem; line-height: 1.7; margin-bottom: 20px; }
+  .center-box.error-box { border-color: rgba(239,68,68,0.25); }
+  .center-box.error-box h2 { color: #f87171; }
+
+  .box-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary   { background: var(--accent); color: white; }
+  .btn-primary:hover { filter: brightness(1.12); }
+
+  .btn-secondary { background: var(--surface2); border: 1px solid #333; color: var(--text-dim); }
+  .btn-secondary:hover { color: var(--text); border-color: #555; }
+
+  .btn-danger { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+  .btn-danger:hover { background: rgba(239,68,68,0.22); }
+
+  /* ── Settings modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 16px;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid #2a2a3e;
+    border-radius: 16px;
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+  }
+
+  .modal h2 { font-size: 1.2rem; margin-bottom: 22px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.3px; }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid #2a2a3e;
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+
+  .form-group input[type="password"] { font-family: monospace; letter-spacing: 2px; }
+  .form-group input:focus,
+  .form-group select:focus { outline: none; border-color: #a855f7; }
+
+  .form-note {
+    font-size: 0.75rem;
+    color: #555;
+    margin-top: 6px;
+    line-height: 1.55;
+  }
+
+  .form-note a { color: #a855f7; }
+
+  .modal-actions { display: flex; gap: 10px; align-items: center; margin-top: 26px; }
+  .modal-actions .spacer { flex: 1; }
+
+  /* ── Footer ── */
+  footer { text-align: center; margin-top: 48px; font-size: 0.78rem; color: #444; }
+
+  /* ── Utilities ── */
+  .hidden { display: none !important; }
+
+  @media (max-width: 520px) {
+    .cards { grid-template-columns: 1fr; }
+    .logo  { font-size: 1.7rem; }
+    .header-btns { position: static; justify-content: center; margin-top: 12px; }
+    .modal { padding: 20px 18px; }
+  }
+</style>
+<!-- config.js에서 window.ENV (API 키, 모델) 로드 -->
+<script src="config.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-btns">
+    <button class="icon-btn" onclick="openSettings()">⚙️ 설정</button>
+    <button class="icon-btn" onclick="regenerate()">🔄 재생성</button>
+  </div>
+  <div class="logo">今日の日本語</div>
+  <div style="font-size:1rem; margin-top:4px; color:var(--text-dim)">오늘의 일본어 단어장</div>
+  <div>
+    <span class="date-badge" id="dateBadge"></span>
+    <span class="cache-badge hidden" id="cacheBadge">✓ 캐시됨</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-cat="noun" onclick="switchTab('noun')">🔵 명사 名詞</button>
+  <button class="tab-btn" data-cat="verb"        onclick="switchTab('verb')">🔴 동사 動詞</button>
+  <button class="tab-btn" data-cat="adj"         onclick="switchTab('adj')">🟡 형용사 形容詞</button>
+  <button class="tab-btn" data-cat="adv"         onclick="switchTab('adv')">🟢 부사 副詞</button>
+</div>
+
+<div id="mainContent">
+  <div id="section-noun" class="section active">
+    <div class="section-title">명사 <span class="jp">名詞 (めいし)</span></div>
+    <div class="cards" id="cards-noun"></div>
+  </div>
+  <div id="section-verb" class="section">
+    <div class="section-title">동사 <span class="jp">動詞 (どうし)</span></div>
+    <div class="cards" id="cards-verb"></div>
+  </div>
+  <div id="section-adj" class="section">
+    <div class="section-title">형용사 <span class="jp">形容詞 (けいようし)</span></div>
+    <div class="cards" id="cards-adj"></div>
+  </div>
+  <div id="section-adv" class="section">
+    <div class="section-title">부사 <span class="jp">副詞 (ふくし)</span></div>
+    <div class="cards" id="cards-adv"></div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="loading-overlay hidden">
+  <div class="spinner"></div>
+  <div class="loading-text">Claude AI가 오늘의 단어를 생성 중입니다…</div>
+  <div class="loading-sub">JLPT N5~N1 범위 · 각 품사 10개 · 15~30초 소요</div>
+</div>
+
+<!-- Settings modal -->
+<div id="settingsModal" class="modal-overlay hidden" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <h2>⚙️ API 설정</h2>
+
+    <div class="form-group" id="apiKeyGroup">
+      <label>Anthropic API 키 <span style="font-size:0.72rem;color:#555">(로컬 실행 시만 필요)</span></label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
+      <div class="form-note" id="apiKeyNote"></div>
+    </div>
+
+    <div class="form-group">
+      <label>모델</label>
+      <select id="modelSelect">
+        <option value="claude-opus-4-8">claude-opus-4-8 — 최고 품질 (권장)</option>
+        <option value="claude-sonnet-4-6">claude-sonnet-4-6 — 균형</option>
+        <option value="claude-haiku-4-5">claude-haiku-4-5 — 빠름 · 저비용</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="clearAllCache()">캐시 전체 삭제</button>
+      <div class="spacer"></div>
+      <button class="btn btn-secondary" onclick="closeSettings()">취소</button>
+      <button class="btn btn-primary" onclick="saveSettings()">저장 &amp; 적용</button>
+    </div>
+  </div>
+</div>
+
+<footer>Claude AI · JLPT N5~N1 · 매일 새로운 40단어 · 당일 캐시 보존</footer>
+
+<script>
+// ── 상수 ──────────────────────────────────────────────────────
+const CACHE_PREFIX = 'jpn_daily_';
+const LS_APIKEY   = 'jpn_api_key';
+const LS_MODEL    = 'jpn_model';
+
+// ── 상태 ──────────────────────────────────────────────────────
+// localStorage 오버라이드 → config.js ENV → 빈값 순으로 우선순위
+let apiKey      = localStorage.getItem(LS_APIKEY) || window.ENV?.ANTHROPIC_API_KEY || '';
+let chosenModel = localStorage.getItem(LS_MODEL)  || window.ENV?.MODEL || 'claude-opus-4-8';
+let activeTab   = 'noun';
+
+// ── 날짜 ──────────────────────────────────────────────────────
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function todayDisplay() {
+  const d    = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+}
+
+// ── 캐시 ──────────────────────────────────────────────────────
+function getCached() {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + todayKey());
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveCache(data) {
+  localStorage.setItem(CACHE_PREFIX + todayKey(), JSON.stringify(data));
+  for (const k of Object.keys(localStorage)) {
+    if (k.startsWith(CACHE_PREFIX) && k !== CACHE_PREFIX + todayKey())
+      localStorage.removeItem(k);
+  }
+}
+
+// ── 환경 감지 ─────────────────────────────────────────────────
+// 로컬(file:// 또는 localhost): Anthropic API 직접 호출 (config.js 키 사용)
+// 배포(Netlify 등):             Netlify Function 경유 (키는 서버 환경변수)
+function isLocal() {
+  return ['localhost', '127.0.0.1', ''].includes(location.hostname);
+}
+
+// ── API 호출 ──────────────────────────────────────────────────
+async function fetchDailyWords() {
+  const dateStr = todayKey();
+  const prompt =
+`Generate 40 Japanese vocabulary words for a Korean language learner's daily word app.
+
+Date seed: ${dateStr} — use this to produce different words each day.
+
+Return ONLY a valid JSON object (no markdown, no code block, no explanation):
+{
+  "noun": [ ...10 word objects... ],
+  "verb": [ ...10 word objects... ],
+  "adj":  [ ...10 word objects... ],
+  "adv":  [ ...10 word objects... ]
+}
+
+Each word object must include ALL of these fields:
+- "k": Japanese word (kanji/kana)
+- "h": full hiragana reading
+- "r": romaji pronunciation
+- "m": concise Korean meaning
+- "d": Korean description with a natural Japanese example sentence (hiragana in parentheses after kanji); verbs must state group (1그룹/2그룹/する동사/불규칙); adjectives must state type (い형용사/な형용사)
+- "level": exactly one of "N5", "N4", "N3", "N2", "N1"
+
+Level distribution per category (approximate):
+- N5: 2 words, N4: 2 words, N3: 3 words, N2: 2 words, N1: 1 word
+
+Additional rules:
+- No duplicate words across all four categories
+- Cover diverse topics: nature, body, emotions, daily life, work, society, abstract
+- Example sentences must be natural and useful for learners
+
+Return the JSON object only. Nothing else.`;
+
+  // 로컬: Anthropic 직접 호출 / 배포: Netlify Function 경유
+  const url     = isLocal() ? 'https://api.anthropic.com/v1/messages' : '/.netlify/functions/daily-words';
+  const headers = { 'Content-Type': 'application/json' };
+  if (isLocal()) {
+    if (!apiKey) throw new Error('API 키가 없습니다. config.js를 확인해주세요.');
+    headers['x-api-key'] = apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access'] = 'true';
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: chosenModel,
+      max_tokens: 8192,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+
+  const json = await res.json();
+  let text = json.content[0].text.trim();
+
+  // 마크다운 코드 블록 제거
+  const md = text.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
+  if (md) text = md[1].trim();
+
+  const data = JSON.parse(text);
+
+  for (const cat of ['noun','verb','adj','adv']) {
+    if (!Array.isArray(data[cat]) || data[cat].length < 5)
+      throw new Error(`응답 오류: '${cat}' 카테고리 데이터가 부족합니다`);
+  }
+  return data;
+}
+
+// ── 렌더링 ────────────────────────────────────────────────────
+const CAT_META = {
+  noun: { cls:'noun-card', tag:'명사',   tagCls:'tag-noun' },
+  verb: { cls:'verb-card', tag:'동사',   tagCls:'tag-verb' },
+  adj:  { cls:'adj-card',  tag:'형용사', tagCls:'tag-adj'  },
+  adv:  { cls:'adv-card',  tag:'부사',   tagCls:'tag-adv'  },
+};
+
+function adjSubtag(d) {
+  if (!d) return '';
+  if (d.includes('な형용사')) return '<span class="tag tag-nadj">な형</span>';
+  if (d.includes('い형용사')) return '<span class="tag tag-iadj">い형</span>';
+  return '';
+}
+
+function renderCards(cat, words) {
+  const container = document.getElementById('cards-' + cat);
+  if (!container) return;
+  const meta = CAT_META[cat];
+  container.innerHTML = words.map((w, i) => `
+    <div class="card ${meta.cls}">
+      <div class="card-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="card-kanji">${w.k || ''}</div>
+      <div class="card-reading">${w.h || ''}</div>
+      <div class="card-romaji">${w.r || ''}</div>
+      <div class="card-meaning">${w.m || ''}</div>
+      <div class="card-desc">${w.d || ''}</div>
+      <div class="card-tags">
+        <span class="tag ${meta.tagCls}">${meta.tag}</span>
+        ${w.level ? `<span class="tag tag-${w.level}">${w.level}</span>` : ''}
+        ${cat === 'adj' ? adjSubtag(w.d) : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderAll(data) {
+  renderCards('noun', data.noun || []);
+  renderCards('verb', data.verb || []);
+  renderCards('adj',  data.adj  || []);
+  renderCards('adv',  data.adv  || []);
+}
+
+// ── DOM 복원 ──────────────────────────────────────────────────
+function restoreSections() {
+  document.getElementById('mainContent').innerHTML = `
+    <div id="section-noun" class="section${activeTab==='noun'?' active':''}">
+      <div class="section-title">명사 <span class="jp">名詞 (めいし)</span></div>
+      <div class="cards" id="cards-noun"></div>
+    </div>
+    <div id="section-verb" class="section${activeTab==='verb'?' active':''}">
+      <div class="section-title">동사 <span class="jp">動詞 (どうし)</span></div>
+      <div class="cards" id="cards-verb"></div>
+    </div>
+    <div id="section-adj" class="section${activeTab==='adj'?' active':''}">
+      <div class="section-title">형용사 <span class="jp">形容詞 (けいようし)</span></div>
+      <div class="cards" id="cards-adj"></div>
+    </div>
+    <div id="section-adv" class="section${activeTab==='adv'?' active':''}">
+      <div class="section-title">부사 <span class="jp">副詞 (ふくし)</span></div>
+      <div class="cards" id="cards-adv"></div>
+    </div>`;
+}
+
+// ── UI 상태 ───────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+function showApiNotice() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="center-box">
+      <div class="box-icon">🔑</div>
+      <h2>Anthropic API 키 필요</h2>
+      <p>이 앱은 Claude AI를 통해 매일 JLPT N5~N1 범위의<br>
+         새로운 단어를 동적으로 생성합니다.<br>
+         시작하려면 API 키를 입력해주세요.</p>
+      <div class="box-actions">
+        <button class="btn btn-primary" style="font-size:0.95rem;padding:11px 26px" onclick="openSettings()">
+          ⚙️ API 키 설정
+        </button>
+        <button class="btn btn-secondary" onclick="useFallback()">
+          📚 기본 단어 보기
+        </button>
+      </div>
+      <p style="margin-top:18px;font-size:0.75rem;color:#555">
+        <a href="https://console.anthropic.com/keys" target="_blank" style="color:#a855f7">
+          console.anthropic.com에서 무료 발급 →
+        </a>
+      </p>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="center-box error-box">
+      <div class="box-icon">⚠️</div>
+      <h2>단어 로드 실패</h2>
+      <p>${msg}</p>
+      <div class="box-actions">
+        <button class="btn btn-secondary" onclick="openSettings()">⚙️ 설정</button>
+        <button class="btn btn-primary" onclick="loadWords()">🔄 다시 시도</button>
+        <button class="btn btn-secondary" onclick="useFallback()">📚 기본 단어</button>
+      </div>
+    </div>`;
+}
+
+// ── 메인 로직 ─────────────────────────────────────────────────
+async function loadWords() {
+  // 로컬 환경에서만 API 키 필요 (배포 환경은 서버 함수가 처리)
+  if (isLocal() && !apiKey) { showApiNotice(); return; }
+
+  const cached = getCached();
+  if (cached) {
+    restoreSections();
+    renderAll(cached);
+    document.getElementById('cacheBadge').classList.remove('hidden');
+    return;
+  }
+
+  showLoading();
+  try {
+    const data = await fetchDailyWords();
+    saveCache(data);
+    hideLoading();
+    restoreSections();
+    renderAll(data);
+    document.getElementById('cacheBadge').classList.remove('hidden');
+  } catch (e) {
+    hideLoading();
+    restoreSections();
+    showError(`<strong>${e.message}</strong><br><br>API 키를 확인하거나 잠시 후 다시 시도해주세요.`);
+  }
+}
+
+async function regenerate() {
+  localStorage.removeItem(CACHE_PREFIX + todayKey());
+  document.getElementById('cacheBadge').classList.add('hidden');
+  await loadWords();
+}
+
+function useFallback() {
+  restoreSections();
+  renderAll(FALLBACK);
+  document.getElementById('cacheBadge').classList.add('hidden');
+}
+
+// ── 설정 모달 ─────────────────────────────────────────────────
+function openSettings() {
+  const apiKeyGroup = document.getElementById('apiKeyGroup');
+  const noteEl      = document.getElementById('apiKeyNote');
+
+  if (!isLocal()) {
+    // 배포 환경: API 키는 Netlify 환경변수가 처리 → 입력란 숨김
+    apiKeyGroup.classList.add('hidden');
+  } else {
+    apiKeyGroup.classList.remove('hidden');
+    const envKey = window.ENV?.ANTHROPIC_API_KEY || '';
+    const lsKey  = localStorage.getItem(LS_APIKEY) || '';
+
+    if (envKey && !lsKey) {
+      document.getElementById('apiKeyInput').value = '';
+      document.getElementById('apiKeyInput').placeholder = 'config.js에서 자동 로드됨 (비워두면 유지)';
+      noteEl.innerHTML = '✅ <strong>config.js</strong>에 설정된 키가 자동으로 사용됩니다.';
+      noteEl.style.color = '#4ade80';
+    } else if (lsKey) {
+      document.getElementById('apiKeyInput').value = lsKey;
+      document.getElementById('apiKeyInput').placeholder = 'sk-ant-api03-...';
+      noteEl.innerHTML = '💾 수동 입력 키 사용 중.'
+        + (envKey ? ' 비우면 config.js 키로 복원됩니다.' : '');
+      noteEl.style.color = '#60a5fa';
+    } else {
+      document.getElementById('apiKeyInput').value = '';
+      document.getElementById('apiKeyInput').placeholder = 'sk-ant-api03-...';
+      noteEl.innerHTML = 'API 키가 없습니다. config.js에 설정하거나 아래에 직접 입력하세요.<br>'
+        + '<a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com에서 발급 →</a>';
+      noteEl.style.color = '#8888aa';
+    }
+  }
+
+  document.getElementById('modelSelect').value = chosenModel;
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.add('hidden');
+}
+
+function saveSettings() {
+  const newKey   = document.getElementById('apiKeyInput').value.trim();
+  const newModel = document.getElementById('modelSelect').value;
+
+  if (newKey) {
+    localStorage.setItem(LS_APIKEY, newKey);      // 수동 오버라이드 저장
+  } else {
+    localStorage.removeItem(LS_APIKEY);           // 비우면 config.js 키로 복원
+  }
+
+  const resolvedKey = newKey || window.ENV?.ANTHROPIC_API_KEY || '';
+  const keyChanged   = resolvedKey !== apiKey;
+  const modelChanged = newModel    !== chosenModel;
+
+  apiKey      = resolvedKey;
+  chosenModel = newModel;
+  localStorage.setItem(LS_MODEL, newModel);
+  closeSettings();
+
+  if (keyChanged || modelChanged) {
+    if (modelChanged) {
+      localStorage.removeItem(CACHE_PREFIX + todayKey());
+      document.getElementById('cacheBadge').classList.add('hidden');
+    }
+    loadWords();
+  }
+}
+
+function clearAllCache() {
+  for (const k of Object.keys(localStorage)) {
+    if (k.startsWith(CACHE_PREFIX)) localStorage.removeItem(k);
+  }
+  document.getElementById('cacheBadge').classList.add('hidden');
+  closeSettings();
+  loadWords();
+}
+
+// ── 탭 전환 ───────────────────────────────────────────────────
+function switchTab(cat) {
+  activeTab = cat;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const btn = document.querySelector(`.tab-btn[data-cat="${cat}"]`);
+  const sec = document.getElementById('section-' + cat);
+  if (btn) btn.classList.add('active');
+  if (sec) sec.classList.add('active');
+}
+
+// ── 폴백 단어 (API 없거나 실패 시) ───────────────────────────
+const FALLBACK = {
+  noun: [
+    { k:"空",     h:"そら",       r:"sora",       m:"하늘",           d:"'空が青い(そらがあおい)' (하늘이 파랗다)",                              level:"N5" },
+    { k:"海",     h:"うみ",       r:"umi",        m:"바다",           d:"'海に行く(うみにいく)' (바다에 가다)",                                   level:"N5" },
+    { k:"時間",   h:"じかん",     r:"jikan",      m:"시간",           d:"'時間がかかる(じかんがかかる)' (시간이 걸리다)",                         level:"N5" },
+    { k:"友達",   h:"ともだち",   r:"tomodachi",  m:"친구",           d:"'友達を作る(ともだちをつくる)' (친구를 사귀다)",                         level:"N5" },
+    { k:"夢",     h:"ゆめ",       r:"yume",       m:"꿈",             d:"꿈(수면 중)·목표. '夢を見る(ゆめをみる)' (꿈을 꾸다)",                   level:"N4" },
+    { k:"気持ち", h:"きもち",     r:"kimochi",    m:"기분, 마음",     d:"'気持ちがいい(きもちがいい)' (기분이 좋다)",                            level:"N4" },
+    { k:"経験",   h:"けいけん",   r:"keiken",     m:"경험",           d:"'経験を積む(けいけんをつむ)' (경험을 쌓다)",                            level:"N3" },
+    { k:"影響",   h:"えいきょう", r:"eikyō",      m:"영향",           d:"'社会に影響を与える(しゃかいにえいきょうをあたえる)' (사회에 영향을 주다)", level:"N2" },
+    { k:"概念",   h:"がいねん",   r:"gainen",     m:"개념",           d:"'概念を理解する(がいねんをりかいする)' (개념을 이해하다)",               level:"N1" },
+    { k:"課題",   h:"かだい",     r:"kadai",      m:"과제, 문제",     d:"'課題を解決する(かだいをかいけつする)' (과제를 해결하다)",               level:"N2" },
+  ],
+  verb: [
+    { k:"食べる",   h:"たべる",     r:"taberu",     m:"먹다",           d:"2그룹 동사. '朝ご飯を食べる(あさごはんをたべる)' (아침밥을 먹다)",      level:"N5" },
+    { k:"行く",     h:"いく",       r:"iku",        m:"가다",           d:"1그룹 동사. て형 'いって'. '学校に行く(がっこうにいく)' (학교에 가다)", level:"N5" },
+    { k:"考える",   h:"かんがえる", r:"kangaeru",   m:"생각하다",       d:"2그룹 동사. 'よく考える(よくかんがえる)' (잘 생각하다)",               level:"N4" },
+    { k:"続ける",   h:"つづける",   r:"tsuzukeru",  m:"계속하다",       d:"2그룹 동사. '練習を続ける(れんしゅうをつづける)' (연습을 계속하다)",   level:"N4" },
+    { k:"認める",   h:"みとめる",   r:"mitomeru",   m:"인정하다",       d:"2그룹 동사. '間違いを認める(まちがいをみとめる)' (실수를 인정하다)",   level:"N3" },
+    { k:"諦める",   h:"あきらめる", r:"akirameru",  m:"포기하다",       d:"2그룹 동사. '夢を諦めない(ゆめをあきらめない)' (꿈을 포기하지 않다)",  level:"N3" },
+    { k:"把握する", h:"はあくする", r:"haaku suru", m:"파악하다",       d:"する동사. '状況を把握する(じょうきょうをはあくする)' (상황을 파악하다)", level:"N2" },
+    { k:"克服する", h:"こくふくする",r:"kokufuku suru",m:"극복하다",    d:"する동사. '困難を克服する(こんなんをこくふくする)' (어려움을 극복하다)", level:"N2" },
+    { k:"培う",     h:"つちかう",   r:"tsuchikau",  m:"기르다, 양성하다",d:"1그룹 동사. '能力を培う(のうりょくをつちかう)' (능력을 기르다)",     level:"N1" },
+    { k:"見据える", h:"みすえる",   r:"misueru",    m:"직시하다",       d:"2그룹 동사. '未来を見据える(みらいをみすえる)' (미래를 직시하다)",     level:"N1" },
+  ],
+  adj: [
+    { k:"大きい",   h:"おおきい",   r:"ōkii",       m:"크다",           d:"い형용사. '大きな夢(おおきなゆめ)を持つ' (큰 꿈을 갖다)",              level:"N5" },
+    { k:"楽しい",   h:"たのしい",   r:"tanoshii",   m:"즐겁다",         d:"い형용사. '楽しい時間(たのしいじかん)' (즐거운 시간)",                 level:"N5" },
+    { k:"元気",     h:"げんき",     r:"genki",      m:"활기차다, 건강하다",d:"な형용사. '元気な子供(げんきなこども)' (활기찬 아이)",              level:"N5" },
+    { k:"複雑",     h:"ふくざつ",   r:"fukuzatsu",  m:"복잡하다",       d:"な형용사. '複雑な気持ち(ふくざつなきもち)' (복잡한 마음)",             level:"N3" },
+    { k:"冷静",     h:"れいせい",   r:"reisei",     m:"냉정하다, 침착하다",d:"な형용사. '冷静な判断(れいせいなはんだん)をする' (냉정한 판단을 하다)", level:"N3" },
+    { k:"穏やか",   h:"おだやか",   r:"odayaka",    m:"온화하다, 평온하다",d:"な형용사. '穏やかな性格(おだやかなせいかく)' (온화한 성격)",        level:"N3" },
+    { k:"的確",     h:"てきかく",   r:"tekikaku",   m:"정확하다, 적절하다",d:"な형용사. '的確な指示(てきかくなしじ)を出す' (정확한 지시를 내리다)", level:"N2" },
+    { k:"率直",     h:"そっちょく", r:"socchoku",   m:"솔직하다",       d:"な형용사. '率直な意見(そっちょくないけん)' (솔직한 의견)",             level:"N2" },
+    { k:"漠然",     h:"ばくぜん",   r:"bakuzen",    m:"막연하다",       d:"な형용사(と형). '漠然とした不安(ばくぜんとしたふあん)' (막연한 불안)", level:"N1" },
+    { k:"緻密",     h:"ちみつ",     r:"chimitsu",   m:"치밀하다, 정밀하다",d:"な형용사. '緻密な計画(ちみつなけいかく)' (치밀한 계획)",           level:"N1" },
+  ],
+  adv: [
+    { k:"とても",     h:"とても",     r:"totemo",     m:"매우, 정말",     d:"'とても嬉しい(とてもうれしい)' (정말 기쁘다)",                          level:"N5" },
+    { k:"もっと",     h:"もっと",     r:"motto",      m:"더, 더욱",       d:"'もっと勉強する(もっとべんきょうする)' (더 공부하다)",                   level:"N5" },
+    { k:"きっと",     h:"きっと",     r:"kitto",      m:"분명히, 틀림없이",d:"주관적 확신. 'きっとうまくいく' (분명 잘 될 거야)",                   level:"N4" },
+    { k:"やはり",     h:"やはり",     r:"yahari",     m:"역시, 아무래도",  d:"'やはりそうだったか' (역시 그랬구나). 회화체는 'やっぱり'",              level:"N4" },
+    { k:"むしろ",     h:"むしろ",     r:"mushiro",    m:"오히려, 차라리",  d:"'むしろ好きだ(むしろすきだ)' (오히려 좋다)",                           level:"N3" },
+    { k:"徐々に",     h:"じょじょに", r:"jojo ni",    m:"서서히, 점차",   d:"'徐々に上達する(じょじょにじょうたつする)' (서서히 실력이 늘다)",        level:"N3" },
+    { k:"概して",     h:"がいして",   r:"gaishite",   m:"대체로, 일반적으로",d:"'概して若者は…(がいしてわかものは)' (대체로 젊은이들은…)",           level:"N2" },
+    { k:"却って",     h:"かえって",   r:"kaette",     m:"오히려, 도리어",  d:"'却って悪化する(かえってあっかする)' (오히려 악화되다)",                 level:"N2" },
+    { k:"あながち",   h:"あながち",   r:"anagachi",   m:"반드시(부정문)",  d:"'あながち間違いではない(あながちまちがいではない)' (꼭 틀린 건 아니다)", level:"N1" },
+    { k:"往々にして", h:"おうおうにして",r:"ōō ni shite",m:"왕왕, 흔히",  d:"'往々にして失敗する(おうおうにしてしっぱいする)' (흔히 실패한다)",       level:"N1" },
+  ],
+};
+
+// ── 초기화 ────────────────────────────────────────────────────
+(function init() {
+  document.getElementById('dateBadge').textContent = todayDisplay();
+  loadWords();
+})();
+</script>
+</body>
+</html>

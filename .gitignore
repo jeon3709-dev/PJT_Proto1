@@ -1,0 +1,7 @@
+# ⚠ API 키 파일 — 절대 커밋하지 마세요
+config.js
+
+# 일반
+.DS_Store
+Thumbs.db
+node_modules/
