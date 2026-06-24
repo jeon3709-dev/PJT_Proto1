@@ -11,4 +11,4 @@
 [functions]
   directory = "netlify/functions"
 [functions."daily-words"]
-  timeout = 60
+  timeout = 120

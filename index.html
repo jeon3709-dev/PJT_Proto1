@@ -442,7 +442,7 @@ const LS_MODEL    = 'jpn_model';
 // ── 상태 ──────────────────────────────────────────────────────
 // localStorage 오버라이드 → config.js ENV → 빈값 순으로 우선순위
 let apiKey      = localStorage.getItem(LS_APIKEY) || window.ENV?.ANTHROPIC_API_KEY || '';
-let chosenModel = localStorage.getItem(LS_MODEL)  || window.ENV?.MODEL || 'claude-sonnet-4-6';
+let chosenModel = localStorage.getItem(LS_MODEL)  || window.ENV?.MODEL || 'claude-haiku-4-5';
 let activeTab   = 'noun';
 
 // ── 날짜 ──────────────────────────────────────────────────────
@@ -512,7 +512,7 @@ Nothing else.`;
     headers,
     body: JSON.stringify({
         model: chosenModel,
-        max_tokens: 2048,
+        max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }]
       })
   });
