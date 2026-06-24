@@ -46,12 +46,8 @@ async function main() {
 
     const data = JSON.parse(cleaned);
 
-    // ensure public directory exists
-    const outDir = 'public';
-    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
-
-    fs.writeFileSync(outDir + '/daily.json', JSON.stringify(data, null, 2), 'utf8');
-    console.log('Generated public/daily.json successfully.');
+    fs.writeFileSync('daily.json', JSON.stringify(data, null, 2), 'utf8');
+    console.log('Generated daily.json successfully.');
   } catch (err) {
     console.error('Error generating daily.json:', err?.message || err);
     process.exit(1);
