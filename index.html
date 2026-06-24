@@ -523,13 +523,30 @@ Nothing else.`;
   }
 
   const json = await res.json();
-  let text = json.content[0].text.trim();
+  let text = (json?.content?.[0]?.text || '').trim();
+
+  // Remove BOM if present
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
 
   // 마크다운 코드 블록 제거
   const md = text.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
   if (md) text = md[1].trim();
 
-  const data = JSON.parse(text);
+  // If response contains extra prefix/suffix, try to extract the first {...} JSON object
+  if (!text.startsWith('{') && text.indexOf('{') !== -1) {
+    const first = text.indexOf('{');
+    const last = text.lastIndexOf('}');
+    if (first !== -1 && last !== -1 && last > first) {
+      text = text.slice(first, last + 1);
+    }
+  }
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (err) {
+    throw new Error(`Model returned invalid JSON: ${err.message}`);
+  }
 
   for (const cat of ['noun','verb','adj','adv']) {
     if (!Array.isArray(data[cat]) || data[cat].length < 5)
