@@ -32,6 +32,18 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
+    // Log a truncated version of the model text for debugging (helps diagnose JSON issues)
+    try {
+      const modelText = data?.content?.[0]?.text;
+      if (modelText) {
+        console.error('Anthropic output (first 2000 chars):\n', modelText.slice(0, 2000));
+      } else {
+        console.error('Anthropic output not found in response JSON.');
+      }
+    } catch (logErr) {
+      console.error('Error while logging model output:', logErr?.message || logErr);
+    }
+
     return {
       statusCode: response.status,
       headers: { 'Content-Type': 'application/json' },
