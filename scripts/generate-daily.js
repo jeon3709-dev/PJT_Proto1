@@ -1,11 +1,21 @@
 const fs = require('fs');
+const path = require('path');
+
+const OUT = path.join(process.cwd(), 'daily.json');
+
+function keepExistingAndExit(reason) {
+  if (fs.existsSync(OUT)) {
+    console.warn(`[generate-daily] ${reason} → 기존 daily.json 유지`);
+  } else {
+    console.warn(`[generate-daily] ${reason} → daily.json이 없어 빈 스텁 생성`);
+    fs.writeFileSync(OUT, JSON.stringify({ noun: [], verb: [], adj: [], adv: [] }, null, 2), 'utf8');
+  }
+  process.exit(0);
+}
 
 async function main() {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.error('No ANTHROPIC_API_KEY in environment. Aborting generate-daily.');
-    process.exit(1);
-  }
+  if (!apiKey) return keepExistingAndExit('ANTHROPIC_API_KEY 환경변수 없음');
 
   const model = process.env.MODEL || 'claude-haiku-4-5';
   const d = new Date();
@@ -27,30 +37,31 @@ async function main() {
     const json = await res.json();
     let text = (json?.content?.[0]?.text || '').trim();
 
-    // remove BOM
     if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
 
-    // strip code blocks
     const md = text.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
     if (md) text = md[1].trim();
 
-    // extract first JSON object if extra text
     if (!text.startsWith('{') && text.indexOf('{') !== -1) {
       const first = text.indexOf('{');
       const last = text.lastIndexOf('}');
       if (first !== -1 && last !== -1 && last > first) text = text.slice(first, last+1);
     }
 
-    // basic cleaning
-    let cleaned = text.replace(/[\u2018\u2019\u201C\u201D]/g, '"').replace(/,\s*(?=[}\]])/g, '').replace(/,\s*,+/g, ',').trim();
+    let cleaned = text.replace(/[''""]/g, '"').replace(/,\s*(?=[}\]])/g, '').replace(/,\s*,+/g, ',').trim();
 
     const data = JSON.parse(cleaned);
 
-    fs.writeFileSync('daily.json', JSON.stringify(data, null, 2), 'utf8');
-    console.log('Generated daily.json successfully.');
+    for (const cat of ['noun', 'verb', 'adj', 'adv']) {
+      if (!Array.isArray(data[cat]) || data[cat].length < 5) {
+        return keepExistingAndExit(`'${cat}' 카테고리 데이터 부족`);
+      }
+    }
+
+    fs.writeFileSync(OUT, JSON.stringify(data, null, 2), 'utf8');
+    console.log('[generate-daily] daily.json 생성 완료');
   } catch (err) {
-    console.error('Error generating daily.json:', err?.message || err);
-    process.exit(1);
+    return keepExistingAndExit(`생성 오류: ${err?.message || err}`);
   }
 }
 
