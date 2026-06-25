@@ -482,6 +482,18 @@ function isLocal() {
 
 // ── API 호출 ──────────────────────────────────────────────────
 async function fetchDailyWords() {
+  // 배포(프로덕션): 빌드 시 생성된 정적 daily.json을 GET으로 그대로 사용.
+  if (!isLocal()) {
+    const res = await fetch('/daily.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`daily.json을 불러오지 못했습니다 (HTTP ${res.status})`);
+    const data = await res.json();
+    for (const cat of ['noun','verb','adj','adv']) {
+      if (!Array.isArray(data[cat]) || data[cat].length < 5)
+        throw new Error(`데이터 오류: '${cat}' 카테고리가 부족합니다`);
+    }
+    return data;
+  }
+
   const dateStr = todayKey();
   const prompt =
 `Generate 40 Japanese vocabulary words (JLPT N5~N1) for a Korean learner. Date seed: ${dateStr}.
@@ -497,24 +509,22 @@ Return ONLY valid JSON with this structure:
 Each object must include: "k" (kanji/kana), "h" (hiragana), "r" (romaji), "m" (Korean meaning), "d" (short Korean description with an example), "level" (N5|N4|N3|N2|N1).
 Nothing else.`;
 
-  // 로컬: Anthropic 직접 호출 / 배포: 정적 daily.json 사용 (빌드 시 생성)
-  const url     = isLocal() ? 'https://api.anthropic.com/v1/messages' : '/daily.json';
-  const headers = { 'Content-Type': 'application/json' };
-  if (isLocal()) {
-    if (!apiKey) throw new Error('API 키가 없습니다. config.js를 확인해주세요.');
-    headers['x-api-key'] = apiKey;
-    headers['anthropic-version'] = '2023-06-01';
-    headers['anthropic-dangerous-direct-browser-access'] = 'true';
-  }
+  // 로컬(file:// 또는 localhost): Anthropic API 직접 호출
+  if (!apiKey) throw new Error('API 키가 없습니다. config.js를 확인해주세요.');
 
-  const res = await fetch(url, {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
     body: JSON.stringify({
-        model: chosenModel,
-        max_tokens: 4096,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      model: chosenModel,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }]
+    })
   });
 
   if (!res.ok) {
