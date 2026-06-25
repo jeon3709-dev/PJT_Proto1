@@ -492,7 +492,9 @@ Return ONLY valid JSON with this structure:
   "adv":  [ ...10 objects... ]
 }
 
-Each object must include: "k" (kanji/kana), "h" (hiragana), "r" (romaji), "m" (Korean meaning), "d" (short Korean description with an japanese sentence example), "level" (N5|N4|N3|N2|N1).
+Within EACH part of speech (10 words), distribute JLPT levels EXACTLY as: 2 words N5, 2 words N4, 3 words N3, 2 words N2, 1 word N1.
+
+Each object must include: "k" (kanji/kana), "h" (hiragana), "r" (romaji), "m" (Korean meaning), "d": Japanese example with hiragana in parentheses + Korean meaning. Example: '空が青い(そらがあおい)' (하늘이 파랗다), "level" (N5|N4|N3|N2|N1).
 Nothing else.`;
 
   // 로컬: Anthropic 직접 호출 / 배포: Netlify Function 경유 (선택한 모델 그대로 반영)
