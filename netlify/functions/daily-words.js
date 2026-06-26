@@ -20,15 +20,24 @@ exports.handler = async (event) => {
   try {
     const payload = JSON.parse(event.body);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(payload),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 9000);
+
+    let response;
+    try {
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const data = await response.json();
 
@@ -50,10 +59,11 @@ exports.handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (err) {
+    const isTimeout = err.name === 'AbortError';
     return {
-      statusCode: 500,
+      statusCode: isTimeout ? 504 : 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: { message: err.message } }),
+      body: JSON.stringify({ error: { message: isTimeout ? 'API 응답 시간 초과 (9s). 잠시 후 재시도하세요.' : err.message } }),
     };
   }
 };
