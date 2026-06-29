@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     const payload = JSON.parse(event.body);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 9000);
+    const timeoutId = setTimeout(() => controller.abort(), 24000);
 
     let response;
     try {
