@@ -479,7 +479,6 @@ function isLocal() {
 }
 
 // ── API 호출 (품사별 4개 병렬) ────────────────────────────────
-async function fetchDailyWords() {
 const POS_PROMPT = {
   noun: 'NOUN (名詞)',
   verb: 'VERB (動詞, dictionary form)',
@@ -558,7 +557,6 @@ async function fetchDailyWords() {
   const cats = ['noun', 'verb', 'adj', 'adv'];
   const [noun, verb, adj, adv] = await Promise.all(cats.map(c => fetchCategory(c, dateStr)));
   return { noun, verb, adj, adv };
-}
 }
 
 // ── 렌더링 ────────────────────────────────────────────────────
